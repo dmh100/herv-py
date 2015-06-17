@@ -55,3 +55,11 @@ docs/_build/
 
 # PyBuilder
 target/
+
+############################################
+#           Project specific               #
+############################################
+
+# Ignore the genomic sequence files
+*.FASTA
+*.fasta
