@@ -51,4 +51,21 @@ def check_fuzznuc():
     fuzznuc = subprocess.check_output(['which', 'fuzznuc']).rstrip()
     return fuzznuc
 
+
+def call_fuzznuc(fuzznuc, input_file, output_file, pattern_file):
+    """
+    Call fuzznuc with the specified arguments.
+
+    :param fuzznuc: Full path to the fuzznuc binary, as found by check_fuzznuc.
+    :type fuzznuc: str or unicode
+    :param input_file: Path to the sequence (FASTA) file.
+    :type fuzznuc: str or unicode
+    :param output_file: File in which fuzznuc will store its output.
+    :type fuzznuc: str or unicode
+    :param pattern_file: Path to the file which contains the fuzznuc settings.
+    :type fuzznuc: str or unicode
+    :return: None
+    """
+
+
 # print check_fuzznuc()
