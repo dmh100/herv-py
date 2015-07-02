@@ -83,7 +83,8 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches):
                                '-sequence', input_file,
                                '-pattern', pattern,
                                '-pmismatch', nof_mismatches,
-                               '-outfile', output_file],
+                               '-outfile', output_file,
+                               '-rformat', 'simple'],
                               stdout=DEVNULL,
                               stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError:
