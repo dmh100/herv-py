@@ -27,6 +27,7 @@ except ImportError:
     import os
     DEVNULL = open(os.devnull, 'wb')
 
+
 # TODO fix the repeating devnull import. Maybe use an exit function?
 @atexit.register
 def custom_exit():
@@ -34,7 +35,6 @@ def custom_exit():
 
 
 def check_fuzznuc():
-    # TODO Port this through python instead of which for compatibility?
     """
     Check for the presence of fuzznuc in the local system.
 
@@ -48,6 +48,7 @@ def check_fuzznuc():
 
     try:
         # stdout=DEVNULL suppresses the output of the system call.
+        # TODO Port this through python instead of which for compatibility?
         subprocess.check_call(['which', 'fuzznuc'], stdout=DEVNULL)
     except subprocess.CalledProcessError:
         print 'Unable to locate fuzznuc on the local system. Aborting.'
@@ -58,7 +59,7 @@ def check_fuzznuc():
     return fuzznuc
 
 
-def call_fuzznuc(fuzznuc, input_file, output_file, pattern_file):
+def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches):
     """
     Call fuzznuc with the specified arguments.
 
@@ -80,7 +81,8 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern_file):
     try:
         subprocess.check_call([fuzznuc,
                                '-sequence', input_file,
-                               '-pattern', '@' + pattern_file,  # fuzznuc pattern file must be prepended with a @.
+                               '-pattern', pattern,
+                               '-pmismatch', nof_mismatches,
                                '-outfile', output_file],
                               stdout=DEVNULL,
                               stderr=subprocess.STDOUT)
@@ -93,7 +95,7 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern_file):
 # TODO: Write the __name__ == main wrapper so that this is usable as a module
 # TODO: and a script too.
 def main():
-    call_fuzznuc(check_fuzznuc(), 'ERR145618_1.FASTA', '', 'nuc.pat')
+    call_fuzznuc(check_fuzznuc(), 'ERR145618_1.FASTA', '', 'TGTGGGGAAAAGCAAGAGAG', '2')
 
 if __name__ == '__main__':
     main()
