@@ -17,7 +17,20 @@ nucleotide sequence and stores the results in an aptly named text file.
 
 # import argparse
 import subprocess
-# import sys
+import sys
+import atexit
+
+# From http://stackoverflow.com/a/11270665
+try:
+    from subprocess import DEVNULL  # py3k
+except ImportError:
+    import os
+    DEVNULL = open(os.devnull, 'wb')
+
+# TODO fix the repeating devnull import. Maybe use an exit function?
+@atexit.register
+def custom_exit():
+    DEVNULL.close()
 
 
 def check_fuzznuc():
@@ -32,21 +45,14 @@ def check_fuzznuc():
     :return: The absolute path to the fuzznuc program as returned
              by which on success, None on failure.
     """
-    # From http://stackoverflow.com/a/11270665
-    try:
-        from subprocess import DEVNULL  # py3k
-    except ImportError:
-        import os
-        DEVNULL = open(os.devnull, 'wb')
 
     try:
         # stdout=DEVNULL suppresses the output of the system call.
         subprocess.check_call(['which', 'fuzznuc'], stdout=DEVNULL)
     except subprocess.CalledProcessError:
         print 'Unable to locate fuzznuc on the local system. Aborting.'
+        custom_exit()
         return None
-    finally:
-        DEVNULL.close()
 
     fuzznuc = subprocess.check_output(['which', 'fuzznuc']).rstrip()
     return fuzznuc
@@ -66,34 +72,28 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern_file):
     :type pattern_file: str or unicode
     :return: None
     """
-    # From http://stackoverflow.com/a/11270665
-    # TODO fix the repeating devnull import. Maybe use an exit function?
-    try:
-        from subprocess import DEVNULL  # py3k
-    except ImportError:
-        import os
-        DEVNULL = open(os.devnull, 'wb')
 
     if not output_file:
         output_file = input_file.split('.')[0] + '.fuzznuc'
         # print output_file
 
-    pattern_file = '@' + pattern_file
-    # print pattern_file
-
     try:
         subprocess.check_call([fuzznuc,
                                '-sequence', input_file,
-                               '-pattern', pattern_file,
+                               '-pattern', '@' + pattern_file,  # fuzznuc pattern file must be prepended with a @.
                                '-outfile', output_file],
                               stdout=DEVNULL,
                               stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError:
         print 'One or more files not found. Aborting.'
+        custom_exit()
         return None
 
-# print check_fuzznuc()
-call_fuzznuc(check_fuzznuc(), 'ERR145618_1.FASA', None, 'nuc.pat')
 
 # TODO: Write the __name__ == main wrapper so that this is usable as a module
 # TODO: and a script too.
+def main():
+    call_fuzznuc(check_fuzznuc(), 'ERR145618_1.FASTA', '', 'nuc.pat')
+
+if __name__ == '__main__':
+    main()
