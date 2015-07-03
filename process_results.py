@@ -14,6 +14,16 @@ import re
 
 def parse_report(path_to_file):
     hits = {}
+    which_prime = ''
+
+    try:
+        which_prime = determine_prime(path_to_file)
+    except UserWarning:
+        print ('The provided file does not seem to contain the 3 or the 5 prime'
+               ' LTR sequence. Aborting.')
+
+    if which_prime == '5_prime':
+        pass
 
     # Define the regular expressions to be used in the parsing of the document.
     seq_re = re.compile(r'# Sequence:\s*(\S+)\s*from: (\S+)\s*to: (\S+)')
@@ -49,17 +59,50 @@ def parse_report(path_to_file):
             if current_id and mismatch_match:
                 hits[current_id]['mismatch'] = mismatch_match.group(1)
 
-    return hits
+    valid_hits = check_results(hits, which_prime)
+    print 'hits'
+    for i in hits:
+        print i, hits[i]
+    print 'valid_hits'
+    for i in valid_hits:
+        print i, valid_hits[i]
+
+    return valid_hits
 
 
-def check_results(hits):
+def check_results(hits, prime):
+    valid_hits = {}
     for hit in hits:
-        length = hits[hit]['read_length']
-        _from = hits[hit]['from']
-        _to = hits[hit]['to']
+        length = int(hits[hit]['read_length'])
+        _from = int(hits[hit]['from'])
+        _to = int(hits[hit]['to'])
+
+        # If the results contain hits of the 5-prime LTR then the
+        # sequence that has to be extracted is to the left of the
+        # input, whereas 3-prime sequence has to be extracted from
+        # the right. These numbers are 1-indexed.
+        if prime == '5_prime':
+            if (_from - 1) < 20:
+                # del hits[hit]
+                pass
+            else:
+                valid_hits[hit] = hits[hit]
+            # elif (_from - 1) > 50:
+            #     # Take only the first 50 elements.
+            #     pass
+        else:
+            if (length - _to) < 20:
+                # del hits[hit]
+                pass
+            else:
+                valid_hits[hit] = hits[hit]
+            # elif (length - _to) > 50:
+            #     # Take only the first 50 elements.
+            #     pass
+    return valid_hits
 
 
-def determine_5_or_3_prime(path_to_file, pattern=''):
+def determine_prime(path_to_file, pattern=''):
     pattern_re = re.compile(r'#\s*-pattern\s*(\S+)')
     with open(path_to_file) as in_file:
         for line in in_file:
@@ -73,7 +116,7 @@ def determine_5_or_3_prime(path_to_file, pattern=''):
     elif pattern == 'TGTGGGGAAAAGCAAGAGAG':
         return '5_prime'
     else:
-        raise Exception('The pattern is not the 5 or the 3 prime LTR.')
+        raise UserWarning('The pattern is not the 5 or the 3 prime LTR.')
 
 
 def main():
