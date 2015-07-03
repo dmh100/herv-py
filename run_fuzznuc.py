@@ -16,7 +16,7 @@ nucleotide sequence and stores the results in an aptly named text file.
 """
 
 import subprocess
-# import sys
+import sys
 import atexit
 
 # From http://stackoverflow.com/a/11270665
@@ -73,9 +73,21 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches):
     :return: None
     """
 
+    if 'prime' in pattern:
+        if pattern == '5_prime':
+            pattern = 'TGTGGGGAAAAGCAAGAGAG'
+        elif pattern == '3_prime':
+            pattern = 'AGGGGCAACCCACCCCTACA'
+        else:
+            raise ValueError('Only 3_prime or 5_prime values are acceptable for the pattern.')
+
     if not output_file:
-        output_file = input_file.split('.')[0] + '.fuzznuc'
-        # print output_file
+        # if 'prime' in pattern
+        if pattern == 'TGTGGGGAAAAGCAAGAGAG' or '5_prime':
+            output_file = input_file.split('.')[0] + '_5_prime' + '.fuzznuc'
+        else:
+            output_file = input_file.split('.')[0] + '_3_prime' + '.fuzznuc'
+            # print output_file
 
     try:
         subprocess.check_call([fuzznuc,
@@ -94,8 +106,6 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches):
         return None
 
 
-# TODO: Write the __name__ == main wrapper so that this is usable as a module
-# TODO: and a script too.
 def main():
     import argparse
 
@@ -110,29 +120,49 @@ def main():
                         '--output',
                         type=str,
                         required=False,
-                        help='Output file. If not specified, the name f the input file with '
+                        help='Output file. If not specified, the name of the input file with '
                              'the .fuzznuc suffix.')
 
-    parser.add_argument('-p',
-                        '--pattern',
-                        type=str,
-                        required=True,
-                        help='DNA pattern to look for in the sequences. Only a/A, g/G, c/C, t/T '
-                             'characters acceptable.')
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-p_seq',
+                       '--pattern_sequence',
+                       type=str,
+                       dest='pat_seq',
+                       help='DNA pattern to look for in the sequences. Only a/A, g/G, c/C, t/T '
+                            'characters acceptable. Is a DNA sequence. Mutually exclusive with '
+                            '-p_type.')
+
+    group.add_argument('-p_type',
+                       '--pattern_type',
+                       type=str,
+                       dest='pat_type',
+                       choices=['5_prime', '3_prime'],
+                       help='DNA pattern to look for in the sequences. Only 5_prime or 3_prime '
+                            'acceptable. Mutually exclusive with -p_seq.')
 
     parser.add_argument('-n',
                         '--number_of_mismatches',
                         dest='nmismatch',
-                        default=2,
+                        default='2',
                         type=str,
                         required=False,
-                        help='How many mismatches to include in the fuzznuc mismatches.')
+                        help='How many mismatches to include in the fuzznuc mismatches. Default is 2.')
 
     args = parser.parse_args()
-    input_file, output_file, pattern, nof_mismatches = args.input, args.output, args.pattern, args.nmismatch
+    if args.pat_seq:
+        pattern = args.pat_seq
+    else:
+        pattern = args.pat_type
+
+    input_file, output_file, nof_mismatches = args.input, args.output, args.nmismatch
 
     # TODO: Write a check for the presence of illegal characters in pattern.
-    call_fuzznuc(check_fuzznuc(), input_file, '', pattern, nof_mismatches)
+    fuzznuc = check_fuzznuc()
+    if fuzznuc:
+        call_fuzznuc(fuzznuc, input_file, '', pattern, nof_mismatches)
+    else:
+        sys.exit('Cannot locate fuzznuc binary in the system. Aborting.')
+
 
 if __name__ == '__main__':
     main()
