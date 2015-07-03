@@ -80,6 +80,8 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches):
             pattern = 'AGGGGCAACCCACCCCTACA'
         else:
             raise ValueError('Only 3_prime or 5_prime values are acceptable for the pattern.')
+    else:
+        raise ValueError('Only 3_prime or 5_prime values are acceptable for the pattern.')
 
     if not output_file:
         # if 'prime' in pattern
@@ -159,7 +161,11 @@ def main():
     # TODO: Write a check for the presence of illegal characters in pattern.
     fuzznuc = check_fuzznuc()
     if fuzznuc:
-        call_fuzznuc(fuzznuc, input_file, '', pattern, nof_mismatches)
+        try:
+            call_fuzznuc(fuzznuc, input_file, '', pattern, nof_mismatches)
+        except ValueError:
+            # Given the restriction on 5_prime/3_prime above this exception should never be raised.
+            print 'Something is very wrong.'
     else:
         sys.exit('Cannot locate fuzznuc binary in the system. Aborting.')
 
