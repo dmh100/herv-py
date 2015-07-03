@@ -8,16 +8,15 @@ nucleotide sequence and stores the results in an aptly named text file.
 
 :param -i, --in: Path to the file which contains the sequences to parse.
 :type -i, --in: str or unicode
-:param -p, --pat: Path to the file which contains the pattern to use.
+:param -p, --pat: Pattern to look for. Can only contain A, G, C or T.
 :type -p, --pat: str or unicode
 :param -o, --out: What file to write the results in.
 :type -o, --out: str or unicode
 :return None
 """
 
-# import argparse
 import subprocess
-import sys
+# import sys
 import atexit
 
 # From http://stackoverflow.com/a/11270665
@@ -69,8 +68,8 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches):
     :type input_file: str or unicode
     :param output_file: File in which fuzznuc will store its output.
     :type output_file: str or unicode
-    :param pattern_file: Path to the file which contains the fuzznuc settings.
-    :type pattern_file: str or unicode
+    :param pattern: Path to the file which contains the fuzznuc settings.
+    :type pattern: str or unicode
     :return: None
     """
 
@@ -87,6 +86,8 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches):
                                '-rformat', 'simple'],
                               stdout=DEVNULL,
                               stderr=subprocess.STDOUT)
+
+        return 1
     except subprocess.CalledProcessError:
         print 'One or more files not found. Aborting.'
         custom_exit()
@@ -96,7 +97,42 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches):
 # TODO: Write the __name__ == main wrapper so that this is usable as a module
 # TODO: and a script too.
 def main():
-    call_fuzznuc(check_fuzznuc(), 'ERR145618_1.FASTA', '', 'TGTGGGGAAAAGCAAGAGAG', '2')
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i',
+                        '--input',
+                        type=str,
+                        required=True,
+                        help='Input file. Must be in FASTA format.')
+
+    parser.add_argument('-o',
+                        '--output',
+                        type=str,
+                        required=False,
+                        help='Output file. If not specified, the name f the input file with '
+                             'the .fuzznuc suffix.')
+
+    parser.add_argument('-p',
+                        '--pattern',
+                        type=str,
+                        required=True,
+                        help='DNA pattern to look for in the sequences. Only a/A, g/G, c/C, t/T '
+                             'characters acceptable.')
+
+    parser.add_argument('-n',
+                        '--number_of_mismatches',
+                        dest='nmismatch',
+                        default=2,
+                        type=str,
+                        required=False,
+                        help='How many mismatches to include in the fuzznuc mismatches.')
+
+    args = parser.parse_args()
+    input_file, output_file, pattern, nof_mismatches = args.input, args.output, args.pattern, args.nmismatch
+
+    # TODO: Write a check for the presence of illegal characters in pattern.
+    call_fuzznuc(check_fuzznuc(), input_file, '', pattern, nof_mismatches)
 
 if __name__ == '__main__':
     main()
