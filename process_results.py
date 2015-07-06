@@ -10,6 +10,7 @@ files.
 
 """
 import re
+import copy
 
 
 def parse_report(path_to_file):
@@ -22,8 +23,8 @@ def parse_report(path_to_file):
         print ('The provided file does not seem to contain the 3 or the 5 prime'
                ' LTR sequence. Aborting.')
 
-    if which_prime == '5_prime':
-        pass
+    # if which_prime == '5_prime':
+    #     pass
 
     # Define the regular expressions to be used in the parsing of the document.
     seq_re = re.compile(r'# Sequence:\s*(\S+)\s*from: (\S+)\s*to: (\S+)')
@@ -45,11 +46,11 @@ def parse_report(path_to_file):
 
             start_match = start_re.search(line)
             if current_id and start_match:
-                hits[current_id]['from'] = start_match.group(1)
+                hits[current_id]['LTR_from'] = start_match.group(1)
 
             end_match = end_re.search(line)
             if current_id and end_match:
-                hits[current_id]['to'] = end_match.group(1)
+                hits[current_id]['LTR_to'] = end_match.group(1)
 
             strand_match = strand_re.search(line)
             if current_id and strand_match:
@@ -60,12 +61,12 @@ def parse_report(path_to_file):
                 hits[current_id]['mismatch'] = mismatch_match.group(1)
 
     valid_hits = check_results(hits, which_prime)
-    print 'hits'
-    for i in hits:
-        print i, hits[i]
-    print 'valid_hits'
-    for i in valid_hits:
-        print i, valid_hits[i]
+    # print 'hits'
+    # for i in hits:
+    #     print i, hits[i]
+    # print 'valid_hits'
+    # for i in valid_hits:
+    #     print i, valid_hits[i]
 
     return valid_hits
 
@@ -74,31 +75,33 @@ def check_results(hits, prime):
     valid_hits = {}
     for hit in hits:
         length = int(hits[hit]['read_length'])
-        _from = int(hits[hit]['from'])
-        _to = int(hits[hit]['to'])
+        ltr_from = int(hits[hit]['LTR_from'])
+        ltr_to = int(hits[hit]['LTR_to'])
 
         # If the results contain hits of the 5-prime LTR then the
         # sequence that has to be extracted is to the left of the
         # input, whereas 3-prime sequence has to be extracted from
         # the right. These numbers are 1-indexed.
-        if prime == '5_prime':
-            if (_from - 1) < 20:
-                # del hits[hit]
-                pass
+
+        # Use the copy module to avoid the valid_hits referencing the original.
+        if prime == '5_prime' and (ltr_from - 1) >= 20:
+            valid_hits[hit] = copy.copy(hits[hit])
+            valid_hits[hit]['extract_to'] = valid_hits[hit]['LTR_from']
+            if (ltr_from - 1) >= 50:
+                # Get 50bp to the left of the LTR point of origin
+                extract_from = int(valid_hits[hit]['LTR_from']) - 50
+                valid_hits[hit]['extract_from'] = str(extract_from)
             else:
-                valid_hits[hit] = hits[hit]
-            # elif (_from - 1) > 50:
-            #     # Take only the first 50 elements.
-            #     pass
-        else:
-            if (length - _to) < 20:
-                # del hits[hit]
-                pass
+                valid_hits[hit]['extract_from'] = str(1)
+        elif prime == '3_prime'and (length - ltr_to) >= 20:
+            valid_hits[hit] = copy.copy(hits[hit])
+            valid_hits[hit]['extract_from'] = valid_hits[hit]['LTR_from']
+            if (length - ltr_to) >= 50:
+                # get 50bp to the right of the LTR
+                extract_to = int(valid_hits[hit]['LTR_from']) + 50
+                valid_hits[hit]['extract_to'] = str(extract_to)
             else:
-                valid_hits[hit] = hits[hit]
-            # elif (length - _to) > 50:
-            #     # Take only the first 50 elements.
-            #     pass
+                valid_hits[hit]['extract_to'] = valid_hits[hit]['LTR_to']
     return valid_hits
 
 
