@@ -101,7 +101,7 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches):
                               stdout=DEVNULL,
                               stderr=subprocess.STDOUT)
 
-        return 1
+        return output_file
     except subprocess.CalledProcessError:
         print 'One or more files not found. Aborting.'
         custom_exit()
