@@ -13,7 +13,7 @@ import re
 import copy
 
 
-def parse_report(path_to_file):
+def parse_report(path_to_file, output_file):
     hits = {}
     which_prime = ''
 
@@ -23,8 +23,8 @@ def parse_report(path_to_file):
         print ('The provided file does not seem to contain the 3 or the 5 prime'
                ' LTR sequence. Aborting.')
 
-    # if which_prime == '5_prime':
-    #     pass
+    if not output_file:
+        output_file = path_to_file.split('.')[0] + '.hits'
 
     # Define the regular expressions to be used in the parsing of the document.
     seq_re = re.compile(r'# Sequence:\s*(\S+)\s*from: (\S+)\s*to: (\S+)')
@@ -67,6 +67,10 @@ def parse_report(path_to_file):
     # print 'valid_hits'
     # for i in valid_hits:
     #     print i, valid_hits[i]
+
+    with open(output_file, 'w') as out_file:
+        for i in valid_hits:
+            out_file.write(i + ' : ' + str(valid_hits[i]) + '\n')
 
     return valid_hits
 
@@ -123,9 +127,27 @@ def determine_prime(path_to_file, pattern=''):
 
 
 def main():
-    results = parse_report('ERR145618_1_5_prime.fuzznuc')
-    for result_key in sorted(results.keys()):
-        print result_key, results[result_key]
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i',
+                        '--input',
+                        type=str,
+                        required=True,
+                        help='Input file. Must be in fuzznuc simple format.')
+
+    parser.add_argument('-o',
+                        '--output',
+                        type=str,
+                        required=False,
+                        help='Output file. If not specified, the name of the input file with '
+                             'the .fuzznuc suffix.')
+
+    args = parser.parse_args()
+    input_file, output_file = args.input, args.output
+
+    results = parse_report(input_file, output_file)
+    # for result_key in sorted(results.keys()):
+    #     print result_key, results[result_key]
 
 if __name__ == '__main__':
     main()
