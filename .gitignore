@@ -60,12 +60,12 @@ target/
 #           Project specific               #
 ############################################
 
-# Ignore the genomic sequence, fuzznuc and pattern files...
+# Ignore the genomic sequence, fuzznuc, results and nohup files.
 *.FASTA
 *.fasta
 *.fuzznuc
-*.pat
 *.hits
+*.out
 
 # Ignore the pycharm folder
 .idea/
