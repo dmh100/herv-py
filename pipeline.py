@@ -37,9 +37,10 @@ def main():
         if os.path.isdir(in_dir):
             abs_path = os.path.abspath(in_dir)
             list_of_fasta_files = process_dir(abs_path)
+            list_of_fasta_files = [abs_path + '/' + x for x in list_of_fasta_files]
             for fasta_file in list_of_fasta_files:
                 for prime in ['5_prime', '3_prime']:
-                    print os.path.abspath(fasta_file), prime
+                    print fasta_file, prime
                     try:
                         fuzznuc_status = rf.call_fuzznuc(fuzznuc, fasta_file, '', prime, '2')
                         if fuzznuc_status:
