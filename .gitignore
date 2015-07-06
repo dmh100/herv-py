@@ -65,6 +65,7 @@ target/
 *.fasta
 *.fuzznuc
 *.pat
+*.hits
 
 # Ignore the pycharm folder
 .idea/
