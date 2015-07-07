@@ -99,13 +99,13 @@ def check_results(hits, prime):
                 valid_hits[hit]['extract_from'] = str(1)
         elif prime == '3_prime'and (length - ltr_to) >= 20:
             valid_hits[hit] = copy.copy(hits[hit])
-            valid_hits[hit]['extract_from'] = valid_hits[hit]['LTR_from']
+            valid_hits[hit]['extract_from'] = valid_hits[hit]['LTR_to']
             if (length - ltr_to) >= 50:
                 # get 50bp to the right of the LTR
                 extract_to = int(valid_hits[hit]['LTR_to']) + 50
                 valid_hits[hit]['extract_to'] = str(extract_to)
             else:
-                valid_hits[hit]['extract_to'] = valid_hits[hit]['LTR_to']
+                valid_hits[hit]['extract_to'] = valid_hits[hit]['read_length']
     return valid_hits
 
 
