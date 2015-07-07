@@ -66,6 +66,10 @@ target/
 *.fuzznuc
 *.hits
 *.out
+# pickle objects too. Could track them but they are binaries and
+# git doesn't like them that much.
+*.p
 
-# Ignore the pycharm folder
+# Ignore the pycharm folder, and a potential Results folder
 .idea/
+results/
