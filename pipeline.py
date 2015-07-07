@@ -41,6 +41,11 @@ def main():
             for fasta_file in list_of_fasta_files:
                 for prime in ['5_prime', '3_prime']:
                     print fasta_file, prime
+                    # What i want ot do here is:
+                    # 1. More helpful print statement. Possibly a % as file size ratio / total.
+                    # 2. add the subprocess.CalledProcessError to the except maybe
+                    # 3. separate the three stages(run fuzznuc, check results, extract) in three
+                    #    functions
                     try:
                         fuzznuc_status = rf.call_fuzznuc(fuzznuc, fasta_file, '', prime, '2')
                         if fuzznuc_status:
