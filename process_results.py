@@ -11,6 +11,7 @@ files.
 """
 import re
 import copy
+import cPickle as pickle
 
 
 def parse_report(path_to_file, output_file):
@@ -24,7 +25,7 @@ def parse_report(path_to_file, output_file):
                ' LTR sequence. Aborting.')
 
     if not output_file:
-        output_file = path_to_file.split('.')[0] + '.hits'
+        output_file = path_to_file.split('.')[0] + '.p'
 
     # Define the regular expressions to be used in the parsing of the document.
     seq_re = re.compile(r'# Sequence:\s*(\S+)\s*from: (\S+)\s*to: (\S+)')
@@ -61,16 +62,9 @@ def parse_report(path_to_file, output_file):
                 hits[current_id]['mismatch'] = mismatch_match.group(1)
 
     valid_hits = check_results(hits, which_prime)
-    # print 'hits'
-    # for i in hits:
-    #     print i, hits[i]
-    # print 'valid_hits'
-    # for i in valid_hits:
-    #     print i, valid_hits[i]
 
-    with open(output_file, 'w') as out_file:
-        for i in valid_hits:
-            out_file.write(i + ' : ' + str(valid_hits[i]) + '\n')
+    with open(output_file, 'wb') as out_file:
+        pickle.dump(valid_hits, out_file)
 
     return valid_hits
 
