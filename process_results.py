@@ -62,9 +62,22 @@ def parse_report(path_to_file, output_file):
                 hits[current_id]['mismatch'] = mismatch_match.group(1)
 
     valid_hits = check_results(hits, which_prime)
+    # Add another level to the json object so that the original FASTA file
+    # is included as the top level header.
+    # The hierarchy of the object is like this:
+    # { <filename_readid_prime>: {
+    #     <readid>: {
+    #       <info>
+    #     }
+    #   }
+    # }
+    #
+    results_dict = {
+        path_to_file.split('.')[0]: valid_hits
+    }
 
     with open(output_file, 'w') as out_file:
-        json.dump(valid_hits, out_file)
+        json.dump(results_dict, out_file)
 
     return valid_hits
 
