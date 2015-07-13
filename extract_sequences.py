@@ -36,9 +36,24 @@ def main():
     args = parser.parse_args()
     fasta_dir, json_dir = args.fasta_input_dir, args.json_input_dir
 
+    # If fasta/json directories are ot defined use the current working directories.
+    if not fasta_dir:
+        fasta_dir = '.'
+
+    if not json_dir:
+        json_dir = '.'
+
+    from pipeline import process_dir
+    fasta_files = process_dir(fasta_dir)
     json_files = load_json(json_dir)
+    if not len(fasta_files) or not len(json_files):
+        from sys import exit
+        exit('Looks like the directory does not contain any fasta/json files. Aborting.')
+
     for json_file in json_files:
         print json_file, json_file.keys()
+    for fasta_file in fasta_files:
+        print fasta_file
 
 if __name__ == '__main__':
     main()
