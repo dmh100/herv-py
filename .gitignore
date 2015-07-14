@@ -63,6 +63,7 @@ target/
 # Ignore the genomic sequence, fuzznuc, results and nohup files.
 *.FASTA
 *.fasta
+*.fa
 *.fuzznuc
 *.hits
 *.out
