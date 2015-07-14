@@ -72,8 +72,6 @@ def parse_report(path_to_file):
     # }
     #
     fasta_name = path_to_file.split('.')[0]
-    fasta_name = fasta_name.split('_')
-    fasta_name = fasta_name[0] + '_' + fasta_name[1]
 
     results_dict = {
         fasta_name: valid_hits

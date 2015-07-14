@@ -86,9 +86,9 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches):
     if not output_file:
         # if 'prime' in pattern
         if pattern == 'TGTGGGGAAAAGCAAGAGAG' or pattern == '5_prime':
-            output_file = os.path.basename(input_file).split('.')[0] + '_5_prime' + '.fuzznuc'
+            output_file = os.path.basename(input_file).split('.')[0] + '.5_prime' + '.fuzznuc'
         else:
-            output_file = os.path.basename(input_file).split('.')[0] + '_3_prime' + '.fuzznuc'
+            output_file = os.path.basename(input_file).split('.')[0] + '.3_prime' + '.fuzznuc'
             # print output_file
 
     try:
