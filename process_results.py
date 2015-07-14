@@ -39,9 +39,10 @@ def parse_report(path_to_file, output_file):
         for line in in_file:
             line = line.rstrip()
 
+            # TODO: SORT OUT THE UGLY STRING CONCATENATIONS
             seq_match = seq_re.search(line)
             if seq_match:
-                current_id = seq_match.group(1)
+                current_id = seq_match.group(1).split('_')[-1]
                 hits[current_id] = {}
                 hits[current_id]['read_length'] = seq_match.group(3)
 
@@ -72,12 +73,16 @@ def parse_report(path_to_file, output_file):
     #   }
     # }
     #
+    fasta_name = path_to_file.split('.')[0]
+    fasta_name = fasta_name.split('_')
+    fasta_name = fasta_name[0] + '_' + fasta_name[1]
+
     results_dict = {
-        path_to_file.split('.')[0]: valid_hits
+        fasta_name: valid_hits
     }
 
     with open(output_file, 'w') as out_file:
-        json.dump(results_dict, out_file)
+        json.dump(results_dict, out_file, indent=2, separators=(',', ':'))
 
     return valid_hits
 
