@@ -42,9 +42,10 @@ def parse_report(path_to_file, output_file):
             # TODO: SORT OUT THE UGLY STRING CONCATENATIONS
             seq_match = seq_re.search(line)
             if seq_match:
-                current_id = seq_match.group(1).split('_')[-1]
+                current_id = seq_match.group(1).split('_')[-1] + '_' + which_prime
                 hits[current_id] = {}
                 hits[current_id]['read_length'] = seq_match.group(3)
+                hits[current_id]['prime'] = which_prime
 
             start_match = start_re.search(line)
             if current_id and start_match:
@@ -66,8 +67,8 @@ def parse_report(path_to_file, output_file):
     # Add another level to the json object so that the original FASTA file
     # is included as the top level header.
     # The hierarchy of the object is like this:
-    # { <filename_readid_prime>: {
-    #     <readid>: {
+    # { <filename>: {
+    #     <readid_prime>: {
     #       <info>
     #     }
     #   }
@@ -81,8 +82,19 @@ def parse_report(path_to_file, output_file):
         fasta_name: valid_hits
     }
 
-    with open(output_file, 'w') as out_file:
-        json.dump(results_dict, out_file, indent=2, separators=(',', ':'))
+    # Check if there is a json file which contains the top level key.
+    # If there is extend that one instead of creating a new one.
+    from os import listdir
+    if fasta_name + '.json' in listdir('.'):
+        with open(fasta_name + '.json', 'r+') as in_out_file:
+            previous_results_dict = json.load(in_out_file)
+            results_dict[fasta_name].update(previous_results_dict[fasta_name])
+            in_out_file.seek(0)
+            json.dump(results_dict, in_out_file, indent=2, separators=(',', ':'))
+            in_out_file.truncate()
+    else:
+        with open(fasta_name + '.json', 'w') as in_out_file:
+            json.dump(results_dict, in_out_file, indent=2, separators=(',', ':'))
 
     return valid_hits
 
