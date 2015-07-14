@@ -49,7 +49,8 @@ def main():
                     try:
                         fuzznuc_status = rf.call_fuzznuc(fuzznuc, fasta_file, '', prime, '2')
                         if fuzznuc_status:
-                            pr.parse_report(fuzznuc_status, '')
+                            results = pr.parse_report(fuzznuc_status)
+                            pr.write_json(results)
                     except ValueError:
                         print 'Something is very wrong.'
         else:

@@ -14,7 +14,7 @@ import copy
 import json
 
 
-def parse_report(path_to_file, output_file):
+def parse_report(path_to_file):
     hits = {}
     which_prime = ''
 
@@ -23,9 +23,6 @@ def parse_report(path_to_file, output_file):
     except UserWarning:
         print ('The provided file does not seem to contain the 3 or the 5 prime'
                ' LTR sequence. Aborting.')
-
-    if not output_file:
-        output_file = path_to_file.split('.')[0] + '.json'
 
     # Define the regular expressions to be used in the parsing of the document.
     seq_re = re.compile(r'# Sequence:\s*(\S+)\s*from: (\S+)\s*to: (\S+)')
@@ -82,9 +79,14 @@ def parse_report(path_to_file, output_file):
         fasta_name: valid_hits
     }
 
+    return results_dict
+
+
+def write_json(results_dict):
+    from os import listdir
     # Check if there is a json file which contains the top level key.
     # If there is extend that one instead of creating a new one.
-    from os import listdir
+    fasta_name = results_dict.keys()[0]
     if fasta_name + '.json' in listdir('.'):
         with open(fasta_name + '.json', 'r+') as in_out_file:
             previous_results_dict = json.load(in_out_file)
@@ -95,8 +97,6 @@ def parse_report(path_to_file, output_file):
     else:
         with open(fasta_name + '.json', 'w') as in_out_file:
             json.dump(results_dict, in_out_file, indent=2, separators=(',', ':'))
-
-    return valid_hits
 
 
 def check_results(hits, prime):
@@ -159,17 +159,11 @@ def main():
                         required=True,
                         help='Input file. Must be in fuzznuc simple format.')
 
-    parser.add_argument('-o',
-                        '--output',
-                        type=str,
-                        required=False,
-                        help='Output file. If not specified, the name of the input file with '
-                             'the .fuzznuc suffix.')
-
     args = parser.parse_args()
     input_file, output_file = args.input, args.output
 
-    results = parse_report(input_file, output_file)
+    results = parse_report(input_file)
+    write_json(results)
     # for result_key in sorted(results.keys()):
     #     print result_key, results[result_key]
 
