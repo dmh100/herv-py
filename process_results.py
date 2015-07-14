@@ -160,7 +160,7 @@ def main():
                         help='Input file. Must be in fuzznuc simple format.')
 
     args = parser.parse_args()
-    input_file, output_file = args.input, args.output
+    input_file = args.input
 
     results = parse_report(input_file)
     write_json(results)
