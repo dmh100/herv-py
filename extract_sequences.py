@@ -8,16 +8,30 @@ import json
 import os
 
 
-def load_json(path_to_json_dir):
-    json_files = []
-    for _file in os.listdir(path_to_json_dir):
-        if _file.endswith('json'):
-            with open(_file) as in_file:
-                json_files.append(json.load(in_file))
-    return json_files
+def load_json(json_files):
+    json_dicts = []
+    for json_file in json_files:
+        with open(json_file) as in_file:
+            json_dicts.append(json.load(in_file))
+    return json_dicts
+
+
+def sort_read_ids(read_ids_and_primes):
+    primes = {}
+    read_ids = []
+    for i in read_ids_and_primes:
+        read_id, prime = i.split('.')
+        read_ids.append(read_id)
+        primes[read_id] = prime
+
+    sorted_read_ids = sorted(read_ids, key=int)
+    for index, read_id in enumerate(sorted_read_ids):
+        sorted_read_ids[index] = read_id + '.' + primes[read_id]
+    return sorted_read_ids
 
 
 def main():
+    import re
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-fasta',
@@ -44,42 +58,48 @@ def main():
         json_dir = '.'
 
     from pipeline import process_dir
-    fasta_files = sorted(process_dir(fasta_dir))
-    json_files = load_json(json_dir)
+    fasta_files = sorted(process_dir(fasta_dir, 'FASTA'))
+    json_files = process_dir(json_dir, 'json')
     if not len(fasta_files) or not len(json_files):
         from sys import exit
         exit('Looks like the directory does not contain any fasta/json files. Aborting.')
+
+    json_files = load_json(json_files)
+    # print json.dumps(json_files, indent=2, separators=(',', ':'))
 
     with open('extracted_sequences.fa', 'a') as out_file:
         for json_file in json_files:
             fasta_file = json_file.keys()[0]
             path_to_fasta_file = fasta_dir + fasta_file + '.FASTA'
             read_ids = json_file[fasta_file].keys()
-            for read_id in read_ids:
-                extract_from = int(json_file[fasta_file][read_id]['extract_from'])
-                extract_to = int(json_file[fasta_file][read_id]['extract_to'])
-                prime = json_file[fasta_file][read_id]['prime']
-                read_id_grep = '_' + read_id.split('_')[0] + '$'
+            sorted_read_ids = sort_read_ids(read_ids)
+            with open(path_to_fasta_file) as in_file:
+                for read_id in sorted_read_ids:
+                    extract_from = int(json_file[fasta_file][read_id]['extract_from'])
+                    extract_to = int(json_file[fasta_file][read_id]['extract_to'])
+                    prime = json_file[fasta_file][read_id]['prime']
+                    read_id_test = read_id.split('.')[0]
 
-                # The most efficient way of doing this is probably grep.
-                # But maybe a TODO for a benchmark if i have the time
-                from subprocess import check_output
-                output = check_output(['grep',
-                                       '-A1',
-                                       read_id_grep,
-                                       path_to_fasta_file])
-                sequence = output.split('\n')[1]
-                # print fasta_file, read_id, extract_from, extract_to
-                # print sequence
-                if prime == '5_prime':
-                    extracted_sequence = sequence[extract_from - 1:extract_to - 1]
-                    # print ' ' * (extract_from - 1) + extracted_sequence
-                else:
-                    extracted_sequence = sequence[extract_from:extract_to]
-                    # print ' ' * extract_from + extracted_sequence
+                    sequence = None
+                    read_id_re = re.compile(r'_(\d+)$')
+                    for line in in_file:
+                        if line.startswith('>'):
+                            read_id_match = read_id_re.search(line)
+                            if read_id_match:
+                                read_id_extracted = read_id_match.group(1)
+                                if read_id_extracted == read_id_test:
+                                    sequence = next(in_file)
+                                    break
+                    if sequence:
+                        if prime == '5_prime':
+                            extracted_sequence = sequence[extract_from - 1:extract_to - 1]
+                            # print ' ' * (extract_from - 1) + extracted_sequence
+                        else:
+                            extracted_sequence = sequence[extract_from:extract_to]
+                            # print ' ' * extract_from + extracted_sequence
 
-                out_file.write('>' + fasta_file + '_' + read_id + '\n')
-                out_file.write(extracted_sequence + '\n')
+                        out_file.write('>' + fasta_file + '.' + read_id + '\n')
+                        out_file.write(extracted_sequence + '\n')
 
 if __name__ == '__main__':
     main()

@@ -39,7 +39,7 @@ def parse_report(path_to_file):
             # TODO: SORT OUT THE UGLY STRING CONCATENATIONS
             seq_match = seq_re.search(line)
             if seq_match:
-                current_id = seq_match.group(1).split('_')[-1] + '_' + which_prime
+                current_id = seq_match.group(1).split('_')[-1] + '.' + which_prime
                 hits[current_id] = {}
                 hits[current_id]['read_length'] = seq_match.group(3)
                 hits[current_id]['prime'] = which_prime
@@ -65,7 +65,7 @@ def parse_report(path_to_file):
     # is included as the top level header.
     # The hierarchy of the object is like this:
     # { <filename>: {
-    #     <readid_prime>: {
+    #     <readid.prime>: {
     #       <info>
     #     }
     #   }
