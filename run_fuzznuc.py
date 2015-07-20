@@ -58,7 +58,7 @@ def check_fuzznuc():
     return fuzznuc
 
 
-def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches):
+def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches, complement=True):
     """
     Call fuzznuc with the specified arguments.
 
@@ -92,12 +92,19 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches):
             # print output_file
 
     try:
-        subprocess.check_call([fuzznuc,
-                               '-sequence', input_file,
-                               '-pattern', pattern,
-                               '-pmismatch', nof_mismatches,
-                               '-outfile', output_file,
-                               '-rformat', 'simple'],
+        fuzznuc_arguments = [
+            fuzznuc,
+            '-sequence', input_file,
+            '-pattern', pattern,
+            '-pmismatch', nof_mismatches,
+            '-outfile', output_file,
+            '-rformat', 'simple'
+        ]
+
+        if complement:
+            fuzznuc_arguments.append('-complement')
+
+        subprocess.check_call(fuzznuc_arguments,
                               stdout=DEVNULL,
                               stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError:
@@ -147,11 +154,25 @@ def main():
                         required=False,
                         help='How many mismatches to include in the fuzznuc mismatches. Default is 2.')
 
+    parser.add_argument('-c',
+                        '--complement',
+                        default='Y',
+                        options=['Y', 'N'],
+                        type=str,
+                        required=True,
+                        help='Y means that fuzznuc will also reverse compliment the specified pattern '
+                             'and look for it in the other strand. Default is Y.')
+
     args = parser.parse_args()
     if args.pat_seq:
         pattern = args.pat_seq
     else:
         pattern = args.pat_type
+
+    if args.complement == 'Y':
+        complement = True
+    else:
+        complement = False
 
     input_file, output_file, nof_mismatches = args.input, args.output, args.nmismatch
 
@@ -159,7 +180,7 @@ def main():
     fuzznuc = check_fuzznuc()
     if fuzznuc:
         try:
-            call_fuzznuc(fuzznuc, input_file, '', pattern, nof_mismatches)
+            call_fuzznuc(fuzznuc, input_file, '', pattern, nof_mismatches, complement)
         except ValueError:
             # Given the restriction on 5_prime/3_prime above this exception should never be raised.
             print 'Something is very wrong.'
