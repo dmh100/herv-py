@@ -73,3 +73,4 @@ target/
 # Ignore the pycharm folder, and a potential Results folder
 .idea/
 results/
+tmp/

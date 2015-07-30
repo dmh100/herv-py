@@ -157,9 +157,9 @@ def main():
     parser.add_argument('-c',
                         '--complement',
                         default='Y',
-                        options=['Y', 'N'],
+                        choices=['Y', 'N'],
                         type=str,
-                        required=True,
+                        required=False,
                         help='Y means that fuzznuc will also reverse compliment the specified pattern '
                              'and look for it in the other strand. Default is Y.')
 

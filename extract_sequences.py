@@ -79,6 +79,7 @@ def main():
                     extract_to = int(json_file[fasta_file][read_id]['extract_to'])
                     prime = json_file[fasta_file][read_id]['prime']
                     read_id_test = read_id.split('.')[0]
+                    strand = json_file[fasta_file][read_id]['strand']
 
                     sequence = None
                     read_id_re = re.compile(r'_(\d+)$')
@@ -91,12 +92,31 @@ def main():
                                     sequence = next(in_file)
                                     break
                     if sequence:
-                        if prime == '5_prime':
-                            extracted_sequence = sequence[extract_from - 1:extract_to - 1]
-                            # print ' ' * (extract_from - 1) + extracted_sequence
+                        if strand == '+':
+                            if prime == '5_prime':
+                                extracted_sequence = sequence[extract_from - 1:extract_to - 1]
+                                # print ' ' * (extract_from - 1) + extracted_sequence
+                            else:
+                                extracted_sequence = sequence[extract_from:extract_to]
+                                # print ' ' * extract_from + extracted_sequence
                         else:
-                            extracted_sequence = sequence[extract_from:extract_to]
-                            # print ' ' * extract_from + extracted_sequence
+                            if prime == '3_prime':
+                                extracted_sequence = sequence[extract_from - 1:extract_to - 1]
+                                # print ' ' * (extract_from - 1) + extracted_sequence
+                            else:
+                                extracted_sequence = sequence[extract_from:extract_to]
+                                # print ' ' * extract_from + extracted_sequence
+
+                            # from string import maketrans, translate
+                            # if prime == '5_prime':
+                            #     trantab = maketrans('AGCT', 'TCGA')
+                            #
+                            #     extracted_sequence = sequence[extract_from - 1:extract_to - 1]
+                            #     # print ' ' * (extract_from - 1) + extracted_sequence
+                            # else:
+                            #     extracted_sequence = sequence[extract_from:extract_to]
+                            #     # print ' ' * extract_from + extracted_sequence
+                            # pass
 
                         out_file.write('>' + fasta_file + '.' + read_id + '\n')
                         out_file.write(extracted_sequence + '\n')

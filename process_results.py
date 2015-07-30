@@ -103,6 +103,7 @@ def check_results(hits, prime):
         length = int(hits[hit]['read_length'])
         ltr_from = int(hits[hit]['LTR_from'])
         ltr_to = int(hits[hit]['LTR_to'])
+        strand = hits[hit]['strand']
 
         # If the results contain hits of the 5-prime LTR then the
         # sequence that has to be extracted is to the left of the
@@ -110,24 +111,44 @@ def check_results(hits, prime):
         # the right. These numbers are 1-indexed.
 
         # Use the copy module to avoid the valid_hits referencing the original.
-        if prime == '5_prime' and (ltr_from - 1) >= 20:
-            valid_hits[hit] = copy.copy(hits[hit])
-            valid_hits[hit]['extract_to'] = valid_hits[hit]['LTR_from']
-            if (ltr_from - 1) >= 50:
-                # Get 50bp to the left of the LTR point of origin
-                extract_from = int(valid_hits[hit]['LTR_from']) - 50
-                valid_hits[hit]['extract_from'] = str(extract_from)
-            else:
-                valid_hits[hit]['extract_from'] = str(1)
-        elif prime == '3_prime'and (length - ltr_to) >= 20:
-            valid_hits[hit] = copy.copy(hits[hit])
-            valid_hits[hit]['extract_from'] = valid_hits[hit]['LTR_to']
-            if (length - ltr_to) >= 50:
-                # get 50bp to the right of the LTR
-                extract_to = int(valid_hits[hit]['LTR_to']) + 50
-                valid_hits[hit]['extract_to'] = str(extract_to)
-            else:
-                valid_hits[hit]['extract_to'] = valid_hits[hit]['read_length']
+        if strand == '+':
+            if prime == '5_prime' and (ltr_from - 1) >= 20:
+                valid_hits[hit] = copy.copy(hits[hit])
+                valid_hits[hit]['extract_to'] = str(ltr_from)
+                if (ltr_from - 1) >= 50:
+                    # Get 50bp to the left of the LTR point of origin
+                    extract_from = ltr_from - 50
+                    valid_hits[hit]['extract_from'] = str(extract_from)
+                else:
+                    valid_hits[hit]['extract_from'] = str(1)
+            elif prime == '3_prime' and (length - ltr_to) >= 20:
+                valid_hits[hit] = copy.copy(hits[hit])
+                valid_hits[hit]['extract_from'] = str(ltr_to)
+                if (length - ltr_to) >= 50:
+                    # get 50bp to the right of the LTR
+                    extract_to = ltr_to + 50
+                    valid_hits[hit]['extract_to'] = str(extract_to)
+                else:
+                    valid_hits[hit]['extract_to'] = str(length)
+        else:
+            if prime == '5_prime' and (length - ltr_to) >= 20:
+                valid_hits[hit] = copy.copy(hits[hit])
+                valid_hits[hit]['extract_from'] = str(ltr_to)
+                if (length - ltr_to) >= 50:
+                    # Get 50bp to the left of the LTR point of origin
+                    extract_to = (length - ltr_to) + 50
+                    valid_hits[hit]['extract_to'] = str(extract_to)
+                else:
+                    valid_hits[hit]['extract_to'] = str(length)
+            elif prime == '3_prime' and (ltr_from - 1) >= 20:
+                valid_hits[hit] = copy.copy(hits[hit])
+                valid_hits[hit]['extract_to'] = str(ltr_from)
+                if (ltr_from - 1) >= 50:
+                    # get 50bp to the right of the LTR
+                    extract_from = ltr_from - 50
+                    valid_hits[hit]['extract_from'] = str(extract_from)
+                else:
+                    valid_hits[hit]['extract_from'] = str(1)
     return valid_hits
 
 
