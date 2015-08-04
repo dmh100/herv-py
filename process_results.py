@@ -114,41 +114,41 @@ def check_results(hits, prime):
         if strand == '+':
             if prime == '5_prime' and (ltr_from - 1) >= 20:
                 valid_hits[hit] = copy.copy(hits[hit])
-                valid_hits[hit]['extract_to'] = str(ltr_from)
+                valid_hits[hit]['seq_to'] = str(ltr_from)
                 if (ltr_from - 1) >= 50:
                     # Get 50bp to the left of the LTR point of origin
-                    extract_from = ltr_from - 50
-                    valid_hits[hit]['extract_from'] = str(extract_from)
+                    seq_from = ltr_from - 50
+                    valid_hits[hit]['seq_from'] = str(seq_from)
                 else:
-                    valid_hits[hit]['extract_from'] = str(1)
+                    valid_hits[hit]['seq_from'] = str(1)
             elif prime == '3_prime' and (length - ltr_to) >= 20:
                 valid_hits[hit] = copy.copy(hits[hit])
-                valid_hits[hit]['extract_from'] = str(ltr_to)
+                valid_hits[hit]['seq_from'] = str(ltr_to)
                 if (length - ltr_to) >= 50:
                     # get 50bp to the right of the LTR
-                    extract_to = ltr_to + 50
-                    valid_hits[hit]['extract_to'] = str(extract_to)
+                    seq_to = ltr_to + 50
+                    valid_hits[hit]['seq_to'] = str(seq_to)
                 else:
-                    valid_hits[hit]['extract_to'] = str(length)
+                    valid_hits[hit]['seq_to'] = str(length)
         else:
             if prime == '5_prime' and (length - ltr_to) >= 20:
                 valid_hits[hit] = copy.copy(hits[hit])
-                valid_hits[hit]['extract_from'] = str(ltr_to)
+                valid_hits[hit]['seq_from'] = str(ltr_to)
                 if (length - ltr_to) >= 50:
                     # Get 50bp to the left of the LTR point of origin
-                    extract_to = (length - ltr_to) + 50
-                    valid_hits[hit]['extract_to'] = str(extract_to)
+                    seq_to = (length - ltr_to) + 50
+                    valid_hits[hit]['seq_to'] = str(seq_to)
                 else:
-                    valid_hits[hit]['extract_to'] = str(length)
+                    valid_hits[hit]['seq_to'] = str(length)
             elif prime == '3_prime' and (ltr_from - 1) >= 20:
                 valid_hits[hit] = copy.copy(hits[hit])
-                valid_hits[hit]['extract_to'] = str(ltr_from)
+                valid_hits[hit]['seq_to'] = str(ltr_from)
                 if (ltr_from - 1) >= 50:
                     # get 50bp to the right of the LTR
-                    extract_from = ltr_from - 50
-                    valid_hits[hit]['extract_from'] = str(extract_from)
+                    seq_from = ltr_from - 50
+                    valid_hits[hit]['seq_from'] = str(seq_from)
                 else:
-                    valid_hits[hit]['extract_from'] = str(1)
+                    valid_hits[hit]['seq_from'] = str(1)
     return valid_hits
 
 

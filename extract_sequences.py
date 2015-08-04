@@ -5,7 +5,7 @@ This module extracts the sequences from the original input files based
 on the findings of the previous two scripts in the pipeline.
 """
 import json
-import os
+import copy
 
 
 def load_json(json_files):
@@ -28,6 +28,20 @@ def sort_read_ids(read_ids_and_primes):
     for index, read_id in enumerate(sorted_read_ids):
         sorted_read_ids[index] = read_id + '.' + primes[read_id]
     return sorted_read_ids
+
+
+def extract_sequence(sequence, strand, prime, seq_from, seq_to):
+    if strand == '+':
+        if prime == '5_prime':
+            extracted_sequence = sequence[seq_from - 1:seq_to - 1]
+        else:
+            extracted_sequence = sequence[seq_from:seq_to]
+    else:
+        if prime == '3_prime':
+            extracted_sequence = sequence[seq_from - 1:seq_to - 1]
+        else:
+            extracted_sequence = sequence[seq_from:seq_to]
+    return extracted_sequence
 
 
 def main():
@@ -65,61 +79,41 @@ def main():
         exit('Looks like the directory does not contain any fasta/json files. Aborting.')
 
     json_files = load_json(json_files)
-    # print json.dumps(json_files, indent=2, separators=(',', ':'))
 
-    with open('extracted_sequences.fa', 'a') as out_file:
-        for json_file in json_files:
-            fasta_file = json_file.keys()[0]
-            path_to_fasta_file = fasta_dir + fasta_file + '.FASTA'
-            read_ids = json_file[fasta_file].keys()
-            sorted_read_ids = sort_read_ids(read_ids)
-            with open(path_to_fasta_file) as in_file:
-                for read_id in sorted_read_ids:
-                    extract_from = int(json_file[fasta_file][read_id]['extract_from'])
-                    extract_to = int(json_file[fasta_file][read_id]['extract_to'])
-                    prime = json_file[fasta_file][read_id]['prime']
-                    read_id_test = read_id.split('.')[0]
-                    strand = json_file[fasta_file][read_id]['strand']
+    for json_file in json_files:
+        copied_dict = copy.copy(json_file)
+        fasta_file = json_file.keys()[0]
+        path_to_fasta_file = fasta_dir + fasta_file + '.FASTA'
+        read_ids = json_file[fasta_file].keys()
+        sorted_read_ids = sort_read_ids(read_ids)
+        with open(path_to_fasta_file) as in_file:
+            for read_id in sorted_read_ids:
+                seq_from = int(json_file[fasta_file][read_id]['seq_from'])
+                seq_to = int(json_file[fasta_file][read_id]['seq_to'])
+                ltr_from = int(json_file[fasta_file][read_id]['LTR_from'])
+                ltr_to = int(json_file[fasta_file][read_id]['LTR_to'])
+                prime = json_file[fasta_file][read_id]['prime']
+                strand = json_file[fasta_file][read_id]['strand']
+                read_id_without_prime = read_id.split('.')[0]
 
-                    sequence = None
-                    read_id_re = re.compile(r'_(\d+)$')
-                    for line in in_file:
-                        if line.startswith('>'):
-                            read_id_match = read_id_re.search(line)
-                            if read_id_match:
-                                read_id_extracted = read_id_match.group(1)
-                                if read_id_extracted == read_id_test:
-                                    sequence = next(in_file)
-                                    break
-                    if sequence:
-                        if strand == '+':
-                            if prime == '5_prime':
-                                extracted_sequence = sequence[extract_from - 1:extract_to - 1]
-                                # print ' ' * (extract_from - 1) + extracted_sequence
-                            else:
-                                extracted_sequence = sequence[extract_from:extract_to]
-                                # print ' ' * extract_from + extracted_sequence
-                        else:
-                            if prime == '3_prime':
-                                extracted_sequence = sequence[extract_from - 1:extract_to - 1]
-                                # print ' ' * (extract_from - 1) + extracted_sequence
-                            else:
-                                extracted_sequence = sequence[extract_from:extract_to]
-                                # print ' ' * extract_from + extracted_sequence
+                sequence = None
+                read_id_re = re.compile(r'_(\d+)$')
+                for line in in_file:
+                    read_id_match = read_id_re.search(line)
+                    if read_id_match:
+                        read_id_extracted = read_id_match.group(1)
+                        if read_id_extracted == read_id_without_prime:
+                            sequence = next(in_file)
+                            break
 
-                            # from string import maketrans, translate
-                            # if prime == '5_prime':
-                            #     trantab = maketrans('AGCT', 'TCGA')
-                            #
-                            #     extracted_sequence = sequence[extract_from - 1:extract_to - 1]
-                            #     # print ' ' * (extract_from - 1) + extracted_sequence
-                            # else:
-                            #     extracted_sequence = sequence[extract_from:extract_to]
-                            #     # print ' ' * extract_from + extracted_sequence
-                            # pass
+                if sequence:
+                    ltr = sequence[ltr_from - 1:ltr_to]
+                    extracted_sequence = extract_sequence(sequence, strand, prime, seq_from, seq_to)
+                    copied_dict[fasta_file][read_id]['extracted_sequence'] = extracted_sequence
+                    copied_dict[fasta_file][read_id]['LTR_sequence'] = ltr
 
-                        out_file.write('>' + fasta_file + '.' + read_id + '\n')
-                        out_file.write(extracted_sequence + '\n')
+        with open(fasta_file + '.json', 'w') as out_file:
+            json.dump(copied_dict, out_file, indent=2, separators=(',', ':'))
 
 if __name__ == '__main__':
     main()
