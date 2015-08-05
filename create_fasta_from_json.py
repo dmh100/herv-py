@@ -1,4 +1,4 @@
-__author__ = 'koukos'
+__author__ = 'Panagiotis Koukos'
 
 """
 This script goes through the json files in a dir, processes them
