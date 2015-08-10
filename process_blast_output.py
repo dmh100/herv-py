@@ -5,9 +5,11 @@ This module processes the blast output in order to extract the useful
 information and store it in an easily accessible format.
 """
 
+import json
+import csv
+
 
 def load_repeating_regions(rep_file_name):
-    import json
     with open(rep_file_name) as in_file:
         repeating_regions = json.load(in_file)
     return repeating_regions
@@ -19,7 +21,7 @@ def format_blast_output_in_dict(blast_output):
 
     output_dict = {
         'query_id': blast_output[0],
-        'chromosome': blast_output[1],
+        'chromosome': 'chr' + blast_output[1],  # So that it matches the RepeatMasker file format.
         'percent_id': blast_output[2],
         'alignment_length': blast_output[3],
         'mismatches': blast_output[4],
@@ -36,7 +38,6 @@ def format_blast_output_in_dict(blast_output):
 
 
 def process_blast_output(file_name):
-    import csv
     blast_output = []
     with open(file_name) as in_file:
         lines = csv.reader(in_file, delimiter='\t')
@@ -44,6 +45,37 @@ def process_blast_output(file_name):
             formatted_output = format_blast_output_in_dict(line)
             blast_output.append(formatted_output)
     return blast_output
+
+
+def hit_in_repeating_region(hit, repeats):
+    hit_start, hit_end = [int(x) for x in sorted([hit['subject_start'], hit['subject_end']])]
+    for repeat in repeats:
+        repeat_start, repeat_end = [int(x) for x in repeat]
+        if repeat_start < hit_start < repeat_end:
+            return True
+        elif repeat_start > hit_end > repeat_end:
+            return True
+    else:
+        return False
+
+
+def filter_out_hits_in_repeating_regions(repeats_dict, blast_hits):
+    # The top level keys for the repeats dictionary are the chromosomes
+    # so they can be used to cut down the search space.
+
+    valid_hits = []
+
+    for hit in blast_hits:
+        # print json.dumps(hit, indent=2, separators=(',', ':'))
+        chromosome = hit['chromosome']
+        if chromosome in repeats_dict:
+            repeats_for_chromosome = repeats_dict[chromosome]
+            if not hit_in_repeating_region(hit, repeats_for_chromosome):
+                valid_hits.append(hit)
+        else:
+            valid_hits.append(hit)
+
+    return valid_hits
 
 
 def main():
@@ -65,9 +97,8 @@ def main():
 
     blast_hits = process_blast_output(input_file)
     repeats = load_repeating_regions(repeats_file)
-
-    for i in blast_hits:
-        print i
+    non_repeating_hits = filter_out_hits_in_repeating_regions(repeats, blast_hits)
+    print non_repeating_hits
 
 if __name__ == '__main__':
     main()
