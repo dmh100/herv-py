@@ -135,8 +135,8 @@ def check_results(hits, prime):
                 valid_hits[hit] = copy.copy(hits[hit])
                 valid_hits[hit]['seq_from'] = str(ltr_to)
                 if (length - ltr_to) >= 50:
-                    # Get 50bp to the left of the LTR point of origin
-                    seq_to = (length - ltr_to) + 50
+                    # Get 50bp to the right of the LTR end
+                    seq_to = ltr_to + 50
                     valid_hits[hit]['seq_to'] = str(seq_to)
                 else:
                     valid_hits[hit]['seq_to'] = str(length)
@@ -144,7 +144,7 @@ def check_results(hits, prime):
                 valid_hits[hit] = copy.copy(hits[hit])
                 valid_hits[hit]['seq_to'] = str(ltr_from)
                 if (ltr_from - 1) >= 50:
-                    # get 50bp to the right of the LTR
+                    # get 50bp to the left of the LTR
                     seq_from = ltr_from - 50
                     valid_hits[hit]['seq_from'] = str(seq_from)
                 else:

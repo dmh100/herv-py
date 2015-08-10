@@ -109,7 +109,7 @@ def main():
                 if sequence:
                     ltr = sequence[ltr_from - 1:ltr_to]
                     extracted_sequence = extract_sequence(sequence, strand, prime, seq_from, seq_to)
-                    copied_dict[fasta_file][read_id]['extracted_sequence'] = extracted_sequence
+                    copied_dict[fasta_file][read_id]['extracted_sequence'] = extracted_sequence.rstrip()
                     copied_dict[fasta_file][read_id]['LTR_sequence'] = ltr
 
         with open(fasta_file + '.json', 'w') as out_file:

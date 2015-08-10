@@ -20,6 +20,9 @@ def main():
     from subprocess import call
     import run_fuzznuc as rf
     import process_results as pr
+    import create_fasta_from_json as cf
+    import extract_sequences as ec
+    import process_blast_output as pb
 
     fuzznuc = rf.check_fuzznuc()
 
@@ -62,6 +65,40 @@ def main():
                   '-fasta',
                   # TODO: SOrt out the final slash, and the paths in general.
                   abs_path + '/'])
+
+            # TODO: Add checks throughout this section. Exceptions for the
+            # TODO: imported and check_call for the scripts.
+
+            # Create the extract_sequences.fa file.
+            list_of_json_files = process_dir('.', 'json')
+            if len(list_of_json_files) < 1:
+                from sys import exit
+                exit('No json files found in the specified directory. Aborting.')
+
+            json_files = ec.load_json(list_of_json_files)
+            processed_json = cf.extract_from_json(json_files)
+            cf.write_to_file(processed_json)
+
+            # Run blast.
+            # call([
+            #     'python', 'run_blast.py',
+            #     '-db', '/scratch/pk3414/Homo_sapiens.GRCh38.dna.toplevel.fa',
+            #     '-seq', 'extracted_sequences.fa'
+            # ])
+
+            # Process the repetitive regions file and store it in JSON. Requires the
+            # file with the RepeatMasker regions in TSV format.
+            # call([
+            #     'python', 'extract_repeating_regions.py',
+            #     '-i', 'repeating_regions'
+            # ])
+
+            # Filter out the blast hits in the repetitive regions. Requires the file
+            # from the previous step in JSON format.
+            blast_hits = pb.process_blast_output('blast.out')
+            repeats = pb.load_repeating_regions('repeating_regions.out')
+            non_repeating_hits = pb.filter_out_hits_in_repeating_regions(repeats, blast_hits)
+            pb.write_valid_hits(non_repeating_hits)
         else:
             raise OSError('The provided path does not seem to point to a directory. Aborting.\n')
     else:
