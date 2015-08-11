@@ -38,6 +38,11 @@ def main():
                 results[chromosome] = []
             results[chromosome].append([genome_start, genome_end])
 
+    # Sort the list under every chromosome based on the start region
+    # of the hit. This allows for binary lookup of the results.
+    for result in results:
+        results[result].sort(key=lambda x: int(x[0]))
+
     if not output_file:
         output_file = 'repeating_regions.out'
 
