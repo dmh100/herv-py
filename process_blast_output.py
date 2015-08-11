@@ -37,45 +37,46 @@ def format_blast_output_in_dict(blast_output):
     return output_dict
 
 
-def process_blast_output(file_name):
-    blast_output = []
-    with open(file_name) as in_file:
+def binary_search_of_repeats(regions_list, hit):
+    if len(regions_list) == 0:
+        return False
+    list_len = len(regions_list)
+    hit_start, hit_end = [int(x) for x in sorted([hit['subject_start'], hit['subject_end']])]
+    index = list_len // 2
+    repeat_start, repeat_end = [int(x) for x in regions_list[index]]
+    # print len(regions_list), index, hit_start, hit_end, repeat_start, repeat_end, hit_in_repeating_region(hit_start, hit_end, repeat_start, repeat_end)
+    if hit_in_repeating_region(hit_start, hit_end, repeat_start, repeat_end):
+        return True
+    else:
+        if hit_start > repeat_start:
+            return binary_search_of_repeats(regions_list[index + 1:], hit)
+        else:
+            return binary_search_of_repeats(regions_list[:index], hit)
+
+
+def process_blast_output(file_name, repeats):
+    with open(file_name) as in_file, open('blast_no_repeats.out', 'w') as out_file:
         lines = csv.reader(in_file, delimiter='\t')
         for line in lines:
             formatted_output = format_blast_output_in_dict(line)
-            blast_output.append(formatted_output)
-    return blast_output
+            chromosome = formatted_output['chromosome']
+            if chromosome in repeats:
+                repeats_for_chromosome = repeats[chromosome]
+                if not binary_search_of_repeats(formatted_output, repeats_for_chromosome):
+                    # print '\t'.join(line)
+                    out_file.write('\t'.join(line) + '\n')
+            else:
+                # print '\t'.join(line)
+                out_file.write('\t'.join(line) + '\n')
 
 
-def hit_in_repeating_region(hit, repeats):
-    hit_start, hit_end = [int(x) for x in sorted([hit['subject_start'], hit['subject_end']])]
-    for repeat in repeats:
-        repeat_start, repeat_end = [int(x) for x in repeat]
-        if repeat_start < hit_start < repeat_end:
-            return True
-        elif repeat_start > hit_end > repeat_end:
-            return True
+def hit_in_repeating_region(hit_start, hit_end, repeat_start, repeat_end):
+    if repeat_start < hit_start < repeat_end:
+        return True
+    elif repeat_start > hit_end > repeat_end:
+        return True
     else:
         return False
-
-
-def filter_out_hits_in_repeating_regions(repeats_dict, blast_hits):
-    # The top level keys for the repeats dictionary are the chromosomes
-    # so they can be used to cut down the search space.
-
-    valid_hits = []
-
-    for hit in blast_hits:
-        # print json.dumps(hit, indent=2, separators=(',', ':'))
-        chromosome = hit['chromosome']
-        if chromosome in repeats_dict:
-            repeats_for_chromosome = repeats_dict[chromosome]
-            if not hit_in_repeating_region(hit, repeats_for_chromosome):
-                valid_hits.append(hit)
-        else:
-            valid_hits.append(hit)
-
-    return valid_hits
 
 
 def write_valid_hits(hits, output_file='blast_no_repeats.out'):

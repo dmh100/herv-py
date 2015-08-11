@@ -95,10 +95,9 @@ def main():
 
             # Filter out the blast hits in the repetitive regions. Requires the file
             # from the previous step in JSON format.
-            blast_hits = pb.process_blast_output('blast.out')
             repeats = pb.load_repeating_regions('repeating_regions.out')
-            non_repeating_hits = pb.filter_out_hits_in_repeating_regions(repeats, blast_hits)
-            pb.write_valid_hits(non_repeating_hits)
+            pb.process_blast_output('sample_blast.out', repeats)
+            # pb.write_valid_hits(blast_hits)
         else:
             raise OSError('The provided path does not seem to point to a directory. Aborting.\n')
     else:
