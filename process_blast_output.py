@@ -80,8 +80,7 @@ def filter_out_hits_in_repeating_regions(repeats_dict, blast_hits):
 
 def write_valid_hits(hits, output_file='blast_no_repeats.out'):
     with open(output_file, 'w') as out_file:
-        for hit in hits:
-            json.dump(hit, out_file, indent=2, separators=(',', ':'))
+        json.dump(hits, out_file, indent=2, separators=(',', ':'))
 
 
 def main():
