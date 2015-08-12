@@ -53,6 +53,25 @@ def binary_search_of_repeats(regions_list, hit):
             return binary_search_of_repeats(regions_list[:index], hit)
 
 
+def non_recursive_binary_search_of_repeats(regions_list, hit):
+    found = False
+    start, end = 0, len(regions_list) - 1
+    hit_start, hit_end = [int(x) for x in sorted([hit['subject_start'], hit['subject_end']])]
+
+    while start <= end and not found:
+        index = (start + end) // 2
+        repeat_start, repeat_end = [int(x) for x in regions_list[index]]
+        if hit_in_repeating_region(hit_start, hit_end, repeat_start, repeat_end):
+            found = True
+        else:
+            if hit_start > repeat_start:
+                start = index + 1
+            else:
+                end = index - 1
+
+    return found
+
+
 def process_blast_output(file_name, repeats):
     # Decrease the writing frequency.
     with open(file_name) as in_file, open('blast_no_repeats.out', 'w') as out_file:
@@ -63,7 +82,7 @@ def process_blast_output(file_name, repeats):
             chromosome = formatted_output['chromosome']
             if chromosome in repeats:
                 repeats_for_chromosome = repeats[chromosome]
-                if not binary_search_of_repeats(repeats_for_chromosome, formatted_output):
+                if not non_recursive_binary_search_of_repeats(repeats_for_chromosome, formatted_output):
                     processed_blast_output.append('\t'.join(line))
                     # out_file.write('\t'.join(line) + '\n')
             else:
