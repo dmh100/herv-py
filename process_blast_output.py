@@ -44,7 +44,6 @@ def binary_search_of_repeats(regions_list, hit):
     hit_start, hit_end = [int(x) for x in sorted([hit['subject_start'], hit['subject_end']])]
     index = list_len // 2
     repeat_start, repeat_end = [int(x) for x in regions_list[index]]
-    # print len(regions_list), index, hit_start, hit_end, repeat_start, repeat_end, hit_in_repeating_region(hit_start, hit_end, repeat_start, repeat_end)
     if hit_in_repeating_region(hit_start, hit_end, repeat_start, repeat_end):
         return True
     else:
@@ -65,11 +64,9 @@ def process_blast_output(file_name, repeats):
             if chromosome in repeats:
                 repeats_for_chromosome = repeats[chromosome]
                 if not binary_search_of_repeats(repeats_for_chromosome, formatted_output):
-                    # print '\t'.join(line)
                     processed_blast_output.append('\t'.join(line))
                     # out_file.write('\t'.join(line) + '\n')
             else:
-                # print '\t'.join(line)
                 processed_blast_output.append('\t'.join(line))
                 # out_file.write('\t'.join(line) + '\n')
             if len(processed_blast_output) == 1000:
@@ -115,11 +112,8 @@ def main():
     args = parser.parse_args()
     input_file, output_file, repeats_file = args.blast_input_file, args.output_file, args.repeats_input_file
 
-    blast_hits = process_blast_output(input_file)
     repeats = load_repeating_regions(repeats_file)
-    non_repeating_hits = filter_out_hits_in_repeating_regions(repeats, blast_hits)
-    # write_valid_hits(non_repeating_hits, output_file)
-    print non_repeating_hits
+    process_blast_output(input_file, repeats)
 
 if __name__ == '__main__':
     main()
