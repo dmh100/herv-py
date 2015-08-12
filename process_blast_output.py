@@ -55,19 +55,28 @@ def binary_search_of_repeats(regions_list, hit):
 
 
 def process_blast_output(file_name, repeats):
+    # Decrease the writing frequency.
     with open(file_name) as in_file, open('blast_no_repeats.out', 'w') as out_file:
         lines = csv.reader(in_file, delimiter='\t')
+        processed_blast_output = []
         for line in lines:
             formatted_output = format_blast_output_in_dict(line)
             chromosome = formatted_output['chromosome']
             if chromosome in repeats:
                 repeats_for_chromosome = repeats[chromosome]
-                if not binary_search_of_repeats(formatted_output, repeats_for_chromosome):
+                if not binary_search_of_repeats(repeats_for_chromosome, formatted_output):
                     # print '\t'.join(line)
-                    out_file.write('\t'.join(line) + '\n')
+                    processed_blast_output.append('\t'.join(line))
+                    # out_file.write('\t'.join(line) + '\n')
             else:
                 # print '\t'.join(line)
-                out_file.write('\t'.join(line) + '\n')
+                processed_blast_output.append('\t'.join(line))
+                # out_file.write('\t'.join(line) + '\n')
+            if len(processed_blast_output) == 1000:
+                write_valid_hits(processed_blast_output, out_file)
+                processed_blast_output = []
+        if len(processed_blast_output):
+            write_valid_hits(processed_blast_output, out_file)
 
 
 def hit_in_repeating_region(hit_start, hit_end, repeat_start, repeat_end):
@@ -79,9 +88,9 @@ def hit_in_repeating_region(hit_start, hit_end, repeat_start, repeat_end):
         return False
 
 
-def write_valid_hits(hits, output_file='blast_no_repeats.out'):
-    with open(output_file, 'w') as out_file:
-        json.dump(hits, out_file, indent=2, separators=(',', ':'))
+def write_valid_hits(hits, out_file):
+    for hit in hits:
+        out_file.write(hit + '\n')
 
 
 def main():
