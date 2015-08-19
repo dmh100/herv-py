@@ -21,7 +21,6 @@ def format_blast_output_in_dict(blast_output):
 
     output_dict = {
         'query_id': blast_output[0],
-        'chromosome': 'chr' + blast_output[1],  # So that it matches the RepeatMasker file format.
         'percent_id': blast_output[2],
         'alignment_length': blast_output[3],
         'mismatches': blast_output[4],
@@ -33,6 +32,13 @@ def format_blast_output_in_dict(blast_output):
         'evalue': blast_output[10],
         'bitscore': blast_output[11],
     }
+
+    if len(blast_output[1]) <= 2:
+        # So that it matches the RepeatMasker file format
+        # and it only catches chromosomes 1-22, X, Y.
+        output_dict['chromosome'] = 'chr' + blast_output[1]
+    else:
+        output_dict['chromosome'] = blast_output[1]
 
     return output_dict
 
