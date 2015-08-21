@@ -36,13 +36,23 @@ def extract_from_json(json_dictionaries):
             ltr = json_file[fasta_file][read_id]['LTR_sequence']
             seq = json_file[fasta_file][read_id]['extracted_sequence']
 
-            my_id = '.'.join([fasta_file, read_id, strand_dict[strand]])
-            final_seq = concat_ltr_seq(strand, prime, ltr, seq)
+            # Include only the hits which have 50bp flanking them. This is
+            # done to reduce the number of hits that make it to the final
+            # stages of the analysis, and also because the 52-fold coverage
+            # will probably account for it.
+            seq_start = int(json_file[fasta_file][read_id]['seq_from'])
+            seq_to = int(json_file[fasta_file][read_id]['seq_to'])
 
-            processed_json.append({
-                'id': my_id,
-                'seq': final_seq
-            })
+            # The len(seq) check is there because some parts of the fasta files
+            # have become corrupted/the sequence is not available.
+            if seq_to - seq_start == 50 and len(seq):
+                my_id = '.'.join([fasta_file, read_id, strand_dict[strand]])
+                final_seq = concat_ltr_seq(strand, prime, ltr, seq)
+
+                processed_json.append({
+                    'id': my_id,
+                    'seq': final_seq
+                })
     return processed_json
 
 
