@@ -78,6 +78,21 @@ def non_recursive_binary_search_of_repeats(regions_list, hit):
     return found
 
 
+def filter_by_query_length(prime, strand, start, end):
+    if (strand == 'forward' and prime == '5_prime') or (strand == 'reverse' and prime == '3_prime'):
+        if start == 1 and end == 50:
+            return True
+        else:
+            return False
+    elif (strand == 'reverse' and prime == '5_prime') or (strand == 'forward' and prime == '3_prime'):
+        if start == 21 and end == 70:
+            return True
+        else:
+            return False
+    else:
+        raise RuntimeError('Unexpected combination of strand and prime.')
+
+
 def process_blast_output(file_name, repeats):
     # Decrease the writing frequency.
     with open(file_name) as in_file, open('blast_no_repeats.out', 'w') as out_file:
@@ -86,14 +101,27 @@ def process_blast_output(file_name, repeats):
         for line in lines:
             formatted_output = format_blast_output_in_dict(line)
             chromosome = formatted_output['chromosome']
-            if chromosome in repeats:
-                repeats_for_chromosome = repeats[chromosome]
-                if not non_recursive_binary_search_of_repeats(repeats_for_chromosome, formatted_output):
-                    processed_blast_output.append('\t'.join(line))
-                    # out_file.write('\t'.join(line) + '\n')
-            else:
-                processed_blast_output.append('\t'.join(line))
-                # out_file.write('\t'.join(line) + '\n')
+
+            # Parse the query id in order to extract strand and prime
+            query_id = formatted_output['query_id']
+            query_id = query_id.split('.')
+            prime, strand = query_id[2:]
+
+            # Get only the hits that have fully matched the flanking sequence
+            q_start = int(formatted_output['query_start'])
+            q_end = int(formatted_output['query_end'])
+
+            try:
+                if filter_by_query_length(prime, strand, q_start, q_end):
+                    if chromosome in repeats:
+                        repeats_for_chromosome = repeats[chromosome]
+                        if not non_recursive_binary_search_of_repeats(repeats_for_chromosome, formatted_output):
+                            processed_blast_output.append('\t'.join(line))
+                    else:
+                        processed_blast_output.append('\t'.join(line))
+            except RuntimeError as e:
+                print ' ', e, 'Query id is', '.'.join(query_id)
+
             if len(processed_blast_output) == 1000:
                 write_valid_hits(processed_blast_output, out_file)
                 processed_blast_output = []
