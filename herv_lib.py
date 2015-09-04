@@ -16,7 +16,6 @@ class Directory(object):
     Those properties are:
         path: string, The path of the directory.
         contents: list, An alphabetical list of the contents of the directory.
-
     """
 
     def __init__(self, path='.'):
@@ -59,12 +58,11 @@ class Directory(object):
 
     @staticmethod
     def compare_file_suffices(_file, suffix, ignore_case):
-        file_suffix = os.path.splitext(_file)[1][1:]
         if ignore_case:
-            if file_suffix.lower() == suffix.lower():
+            if _file.suffix.lower() == suffix.lower():
                 return True
         else:
-            if file_suffix == suffix:
+            if _file.suffix == suffix:
                 return True
 
     def get_files_with_suffix(self, suffix, ignore_case=False):
@@ -81,14 +79,42 @@ class Directory(object):
                          is no. Change at your own peril.
         """
         files_with_suffix = []
-        for _file in self.contents:
-            if self.compare_file_suffices(_file, suffix, ignore_case):
-                files_with_suffix.append(_file)
+        # ALWAYS send the ABSOLUTE paths to the File class.
+        # Also filter out the directories.
+        for file_path in self.get_contents_with_full_path():
+            if not os.path.isdir(file_path):
+                _file = File(file_path)
+                if self.compare_file_suffices(_file, suffix, ignore_case):
+                    files_with_suffix.append(_file.path)
 
         if len(files_with_suffix):
             return files_with_suffix
 
 
 class File(object):
+    """
+    What it says on the tin. Models a file along with a few of its properties.
+    Those properties are:
+        path: string, The path of the directory.
+        suffix: string, The file ending.
+    """
 
-    pass
+    def __init__(self, path):
+        """
+        Returns a File object whose path is *path*, *suffix* is the
+        file ending. If it passes the sanity checks that is.
+
+        Paths are always absolute to the filesystem root for consistency.
+        We are assuming that all the paths that make it to this point are
+        absolute ones since all of them are passed through the Directory class.
+        """
+        if not isinstance(path, str):
+            raise TypeError('Path should be a string.'
+                            ' Instead, path has a type of', type(path),
+                            'and a value of', path)
+
+        self.path = path
+        self.suffix = self.get_file_suffix()
+
+    def get_file_suffix(self):
+        return os.path.splitext(self.path)[1][1:]
