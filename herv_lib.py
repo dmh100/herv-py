@@ -8,11 +8,12 @@ script as well.
 """
 
 import os
+import subprocess
 
 
 class Directory(object):
     """
-    What it says on the tin. Models a directory along with a few of its properties.
+    Models a directory along with a few of its properties.
     Those properties are:
         path: string, The path of the directory.
         contents: list, An alphabetical list of the contents of the directory.
@@ -93,9 +94,9 @@ class Directory(object):
 
 class File(object):
     """
-    What it says on the tin. Models a file along with a few of its properties.
+    Models a file along with a few of its properties.
     Those properties are:
-        path: string, The path of the directory.
+        path: string, The path of the file.
         suffix: string, The file ending.
     """
 
@@ -118,3 +119,33 @@ class File(object):
 
     def get_file_suffix(self):
         return os.path.splitext(self.path)[1][1:]
+
+
+class Executable(File):
+    """
+    Models an EXECUTABLE file. Also inherits from File.
+    Only property is:
+        path: string, The path of the executable file.
+    """
+
+    def __init__(self, exec_name):
+        super(Executable, self).__init__(exec_name)
+        self.path = self.locate_executable()
+
+    def locate_executable(self):
+        """
+        Use 'which' to check for the presence of the specified command.
+
+        :param: None.
+        :return: The output of which for success, otherwise None.
+        """
+        abs_path = None
+        try:
+            abs_path = subprocess.check_output(['which', self.path])
+        except subprocess.CalledProcessError as e:
+            print 'Could not locate program', self.path, 'Error was:', e
+
+        if abs_path:
+            return abs_path.rstrip()
+        else:
+            return None
