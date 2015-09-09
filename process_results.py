@@ -72,6 +72,7 @@ def parse_report(path_to_file):
     # }
     #
     fasta_name = path_to_file.split('.')[0]
+    fasta_name = fasta_name.split('/')[-1]
 
     results_dict = {
         fasta_name: valid_hits
@@ -183,8 +184,6 @@ def main():
 
     results = parse_report(input_file)
     write_json(results)
-    # for result_key in sorted(results.keys()):
-    #     print result_key, results[result_key]
 
 if __name__ == '__main__':
     main()

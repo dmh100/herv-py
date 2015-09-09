@@ -47,6 +47,9 @@ class Directory(object):
     def get_dir_contents(self):
         return os.listdir(self.path)
 
+    def set_dir_contents(self):
+        self.contents = os.listdir(self.path)
+
     def create_dir(self, path):
         os.makedirs(path)
         self.path = self.get_abs_path(path)

@@ -33,31 +33,6 @@ def custom_exit():
     DEVNULL.close()
 
 
-def check_fuzznuc():
-    """
-    Check for the presence of fuzznuc in the local system.
-
-    This functions uses the linux built in command 'which' to
-    check if the command fuzznuc is available.
-
-    :param : none
-    :return: The absolute path to the fuzznuc program as returned
-             by which on success, None on failure.
-    """
-
-    try:
-        # stdout=DEVNULL suppresses the output of the system call.
-        # TODO Port this through python instead of which for compatibility?
-        subprocess.check_call(['which', 'fuzznuc'], stdout=DEVNULL)
-    except subprocess.CalledProcessError:
-        print 'Unable to locate fuzznuc on the local system. Aborting.'
-        custom_exit()
-        return None
-
-    fuzznuc = subprocess.check_output(['which', 'fuzznuc']).rstrip()
-    return fuzznuc
-
-
 def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches, complement=True):
     """
     Call fuzznuc with the specified arguments.
@@ -114,6 +89,7 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches, comp
 
 def main():
     import argparse
+    import herv_lib
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-i',
@@ -177,10 +153,10 @@ def main():
     input_file, output_file, nof_mismatches = args.input, args.output, args.nmismatch
 
     # TODO: Write a check for the presence of illegal characters in pattern.
-    fuzznuc = check_fuzznuc()
+    fuzznuc = herv_lib.Executable('fuzznuc')
     if fuzznuc:
         try:
-            call_fuzznuc(fuzznuc, input_file, '', pattern, nof_mismatches, complement)
+            call_fuzznuc(fuzznuc.path, input_file, '', pattern, nof_mismatches, complement)
         except ValueError:
             # Given the restriction on 5_prime/3_prime above this exception should never be raised.
             print 'Something is very wrong.'

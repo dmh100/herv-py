@@ -6,6 +6,7 @@ on the findings of the previous two scripts in the pipeline.
 """
 import json
 import copy
+import herv_lib
 
 
 def load_json(json_files):
@@ -71,9 +72,10 @@ def main():
     if not json_dir:
         json_dir = '.'
 
-    from pipeline import process_dir
-    fasta_files = sorted(process_dir(fasta_dir, 'FASTA'))
-    json_files = process_dir(json_dir, 'json')
+    fasta_dir = herv_lib.Directory(fasta_dir)
+    json_dir = herv_lib.Directory(json_dir)
+    fasta_files = fasta_dir.get_files_with_suffix('FASTA')
+    json_files = json_dir.get_files_with_suffix('json')
     if not len(fasta_files) or not len(json_files):
         from sys import exit
         exit('Looks like the directory does not contain any fasta/json files. Aborting.')
@@ -83,7 +85,7 @@ def main():
     for json_file in json_files:
         copied_dict = copy.copy(json_file)
         fasta_file = json_file.keys()[0]
-        path_to_fasta_file = fasta_dir + fasta_file + '.FASTA'
+        path_to_fasta_file = fasta_dir.path + '/' + fasta_file + '.FASTA'
         read_ids = json_file[fasta_file].keys()
         sorted_read_ids = sort_read_ids(read_ids)
         with open(path_to_fasta_file) as in_file:
