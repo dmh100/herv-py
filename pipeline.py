@@ -97,8 +97,7 @@ def main():
     # Filter out the blast hits in the repetitive regions. Requires the file
     # from the previous step in JSON format.
     repeats = process_blast_output.load_repeating_regions('repeating_regions.out')
-    process_blast_output.process_blast_output('sample_blast.out', repeats)
-    # pb.write_valid_hits(blast_hits)
+    process_blast_output.process_blast_output('blast.out', repeats)
 
 
 if __name__ == '__main__':
