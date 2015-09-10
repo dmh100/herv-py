@@ -64,7 +64,7 @@ def write_to_file(json_files):
 
 
 def main():
-    from pipeline import process_dir
+    import herv_lib
     from extract_sequences import load_json
     import argparse
 
@@ -78,8 +78,9 @@ def main():
 
     args = parser.parse_args()
     in_dir = args.input_dir
+    in_dir = herv_lib.Directory(in_dir)
 
-    json_files = process_dir(in_dir, 'json')
+    json_files = in_dir.get_files_with_suffix('json')
     if len(json_files) < 1:
         from sys import exit
         exit('No json files found in the specified directory. Aborting.')
