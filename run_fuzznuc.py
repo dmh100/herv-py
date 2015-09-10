@@ -24,6 +24,7 @@ try:
     from subprocess import DEVNULL  # py3k
 except ImportError:
     import os
+
     DEVNULL = open(os.devnull, 'wb')
 
 
@@ -48,23 +49,15 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches, comp
     :return: None
     """
 
-    if 'prime' in pattern:
-        if pattern == '5_prime':
-            pattern = 'TGTGGGGAAAAGCAAGAGAG'
-        elif pattern == '3_prime':
-            pattern = 'AGGGGCAACCCACCCCTACA'
-        else:
-            raise ValueError('Only 3_prime or 5_prime values are acceptable for the pattern.')
-    else:
-        raise ValueError('Only 3_prime or 5_prime values are acceptable for the pattern.')
+    if pattern != 'TGTGGGGAAAAGCAAGAGAG' or pattern != 'AGGGGCAACCCACCCCTACA':
+        raise RuntimeWarning('Sequence other than the 3prime or 5prime LTR consensus of the'
+                             'HERV-K113 pro-virus detected. Proceeding at your own risk.')
 
     if not output_file:
-        # if 'prime' in pattern
-        if pattern == 'TGTGGGGAAAAGCAAGAGAG' or pattern == '5_prime':
+        if pattern == 'TGTGGGGAAAAGCAAGAGAG':
             output_file = os.path.basename(input_file).split('.')[0] + '.5_prime' + '.fuzznuc'
         else:
             output_file = os.path.basename(input_file).split('.')[0] + '.3_prime' + '.fuzznuc'
-            # print output_file
 
     try:
         fuzznuc_arguments = [
@@ -82,8 +75,8 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches, comp
         subprocess.check_call(fuzznuc_arguments,
                               stdout=DEVNULL,
                               stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError:
-        print 'One or more files not found. Aborting.'
+    except subprocess.CalledProcessError as e:
+        print 'Error during the execution of fuzznuc. Error returned was:', e
         custom_exit()
 
 
@@ -105,22 +98,12 @@ def main():
                         help='Output file. If not specified, the name of the input file with '
                              'the .fuzznuc suffix.')
 
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-p_seq',
-                       '--pattern_sequence',
-                       type=str,
-                       dest='pat_seq',
-                       help='DNA pattern to look for in the sequences. Only a/A, g/G, c/C, t/T '
-                            'characters acceptable. Is a DNA sequence. Mutually exclusive with '
-                            '-p_type.')
-
-    group.add_argument('-p_type',
-                       '--pattern_type',
-                       type=str,
-                       dest='pat_type',
-                       choices=['5_prime', '3_prime'],
-                       help='DNA pattern to look for in the sequences. Only 5_prime or 3_prime '
-                            'acceptable. Mutually exclusive with -p_seq.')
+    parser.add_argument('-p',
+                        '--pattern',
+                        type=str,
+                        required=True,
+                        help='DNA pattern to look for in the sequences. Only a/A, g/G, c/C, t/T '
+                             'characters acceptable. Is a DNA sequence.')
 
     parser.add_argument('-n',
                         '--number_of_mismatches',
@@ -140,26 +123,20 @@ def main():
                              'and look for it in the other strand. Default is Y.')
 
     args = parser.parse_args()
-    if args.pat_seq:
-        pattern = args.pat_seq
-    else:
-        pattern = args.pat_type
 
-    if args.complement == 'Y':
-        complement = True
-    else:
-        complement = False
+    complement = True if args.complement == 'Y' else False
+    input_file, output_file, nof_mismatches, pattern = args.input, args.output, args.nmismatch, args.pattern
 
-    input_file, output_file, nof_mismatches = args.input, args.output, args.nmismatch
-
-    # TODO: Write a check for the presence of illegal characters in pattern.
     fuzznuc = herv_lib.Executable('fuzznuc')
     if fuzznuc:
         try:
             call_fuzznuc(fuzznuc.path, input_file, '', pattern, nof_mismatches, complement)
-        except ValueError:
-            # Given the restriction on 5_prime/3_prime above this exception should never be raised.
-            print 'Something is very wrong.'
+        except ValueError as e:
+            # Given the restriction on 5_prime/3_prime above this exception should never be raised,
+            # If the sequences are the HERV-K consensus sequences.
+            print ('The specified pattern does not conform to the 3 or 5 prime consensus sequences',
+                   'for HERV-K113. Unless you are using sequences with different origin, something',
+                   'is wrong. Please investigate. Error returned was:', e)
     else:
         sys.exit('Cannot locate fuzznuc binary in the system. Aborting.')
 
