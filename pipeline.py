@@ -80,23 +80,24 @@ def main():
     create_fasta_from_json.write_to_file(processed_json)
 
     # Run blast.
-    # call([
-    #     'python', 'run_blast.py',
-    #     '-db', '/scratch/pk3414/Homo_sapiens.GRCh38.dna.toplevel.fa',
-    #     '-seq', 'extracted_sequences.fa'
-    # ])
+    subprocess.call([
+        'python', 'run_blast.py',
+        '-db', '/scratch/pk3414/Homo_sapiens.GRCh38.dna.toplevel.fa',
+        '-seq', 'extracted_sequences.fa'
+    ])
 
     # Process the repetitive regions file and store it in JSON. Requires the
-    # file with the RepeatMasker regions in TSV format.
-    # call([
+    # file with the RepeatMasker regions in TSV format. Only run this the first
+    # time you obtain the repeat regions file from UCSC.
+    # subprocess.call([
     #     'python', 'extract_repeating_regions.py',
     #     '-i', 'repeating_regions'
     # ])
 
     # Filter out the blast hits in the repetitive regions. Requires the file
     # from the previous step in JSON format.
-    # repeats = process_blast_output.load_repeating_regions('repeating_regions.out')
-    # process_blast_output.process_blast_output('sample_blast.out', repeats)
+    repeats = process_blast_output.load_repeating_regions('repeating_regions.out')
+    process_blast_output.process_blast_output('sample_blast.out', repeats)
     # pb.write_valid_hits(blast_hits)
 
 
