@@ -49,7 +49,7 @@ def call_fuzznuc(fuzznuc, input_file, output_file, pattern, nof_mismatches, comp
     :return: None
     """
 
-    if pattern != 'TGTGGGGAAAAGCAAGAGAG' or pattern != 'AGGGGCAACCCACCCCTACA':
+    if pattern != 'TGTGGGGAAAAGCAAGAGAG' and pattern != 'AGGGGCAACCCACCCCTACA':
         raise RuntimeWarning('Sequence other than the 3prime or 5prime LTR consensus of the'
                              'HERV-K113 pro-virus detected. Proceeding at your own risk.')
 
